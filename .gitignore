@@ -1,3 +1,4 @@
 target/
 jetty-pg-ds.xml
 src/main/resources/app.properties
+nb-configuration.xml
