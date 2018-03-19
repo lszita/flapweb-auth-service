@@ -5,13 +5,25 @@
  */
 package tech.flapweb.auth.webservice;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.util.log.Log;
+import tech.flapweb.auth.App;
+import tech.flapweb.auth.AppSettingsException;
 
 /**
  *
@@ -20,6 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "Validate", urlPatterns = {"/validate"})
 public class Validate extends HttpServlet {
 
+    
+    private static final org.eclipse.jetty.util.log.Logger LOGGER = Log.getLogger(Validate.class);
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -33,16 +47,22 @@ public class Validate extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Validate</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Validate at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+            String token = request.getParameter("token");
+            
+            try {
+                Algorithm algorithmRS = Algorithm.RSA256(App.getPUB(), null);
+                JWTVerifier verifier = JWT.require(algorithmRS)
+                    .withIssuer("flapweb")
+                    .build(); //Reusable verifier instance
+                DecodedJWT jwt = verifier.verify(token);
+            }catch (JWTVerificationException ex) {
+                out.println("this boi INVALID AND DENIED");
+            } catch (AppSettingsException ex) {
+               LOGGER.warn(ex);
+            }
+            
+            
+            out.println("this boi valid");
         }
     }
 
