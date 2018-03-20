@@ -12,10 +12,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -52,17 +48,15 @@ public class Validate extends HttpServlet {
             try {
                 Algorithm algorithmRS = Algorithm.RSA256(App.getPUB(), null);
                 JWTVerifier verifier = JWT.require(algorithmRS)
-                    .withIssuer("flapweb")
-                    .build(); //Reusable verifier instance
+                    .withIssuer("flapweb_auth")
+                    .build();
                 DecodedJWT jwt = verifier.verify(token);
+                out.println(jwt.getSubject());
             }catch (JWTVerificationException ex) {
                 out.println("this boi INVALID AND DENIED");
             } catch (AppSettingsException ex) {
                LOGGER.warn(ex);
             }
-            
-            
-            out.println("this boi valid");
         }
     }
 

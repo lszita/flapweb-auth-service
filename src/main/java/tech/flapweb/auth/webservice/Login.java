@@ -22,7 +22,7 @@ import org.eclipse.jetty.util.log.Logger;
 import tech.flapweb.auth.App;
 import tech.flapweb.auth.AppSettingsException;
 import tech.flapweb.auth.dao.UserDAO;
-import tech.flapweb.auth.dao.UserDAO.LoginDBException;
+import tech.flapweb.auth.dao.UserDAO.AuthDBException;
 import tech.flapweb.auth.domain.LoginUser;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
@@ -32,11 +32,13 @@ public class Login extends HttpServlet {
 
     private static final Logger LOGGER = Log.getLogger(Login.class);
     private Validator validator;
+    private UserDAO userDAO;
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
+        userDAO = new UserDAO();
     }
 
     @Override
@@ -65,25 +67,26 @@ public class Login extends HttpServlet {
         // VALID REQUEST
         } else {
             try {
-                UserDAO users = new UserDAO();
                 String token= null;
                 
-                if(users.exists(user)) {
+                if(userDAO.exists(user)) {
                     Algorithm algorithmRS = Algorithm.RSA256(null, App.getPK());
                     token = JWT.create()
-                        .withIssuer(user.getUsername())
+                        .withIssuer("flapweb_auth")
+                        .withSubject(user.getUsername())
                         .sign(algorithmRS);
                     responseObjectBuilder
                         .add("status", "success")
                         .add("token", token);
+                    response.setStatus(200);
                 } else {
-                    responseObjectBuilder
-                    .add("status", "failed");
+                    responseObjectBuilder.add("status", "failed");
+                    response.setStatus(400);
                 }
-            } catch (LoginDBException | AppSettingsException | JWTCreationException ex) {
+            } catch (AuthDBException | AppSettingsException | JWTCreationException ex) {
                 LOGGER.warn(ex);
-                responseObjectBuilder
-                    .add("status", "error");
+                responseObjectBuilder.add("status", "error");
+                response.setStatus(500);
             }
         }
 

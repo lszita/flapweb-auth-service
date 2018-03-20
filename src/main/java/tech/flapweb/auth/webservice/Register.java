@@ -1,17 +1,27 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package tech.flapweb.auth.webservice;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Set;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
+import tech.flapweb.auth.dao.UserDAO;
+import tech.flapweb.auth.dao.UserDAO.AuthDBException;
+import tech.flapweb.auth.domain.RegisterUser;
 
 /**
  *
@@ -20,69 +30,74 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "Register", urlPatterns = {"/register"})
 public class Register extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Register</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Register at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
+    
+    private static final Logger LOGGER = Log.getLogger(Login.class);
+    private Validator validator;
+    private UserDAO userDAO;
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
+    public void init(ServletConfig servletConfig) throws ServletException {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
+        userDAO = new UserDAO();
     }
-
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        
+        response.setContentType("application/json;charset=UTF-8");
+        JsonObjectBuilder responseObjectBuilder = Json.createObjectBuilder();
+        
+        RegisterUser user = new RegisterUser();
+        user.setUsername(request.getParameter("username"));
+        user.setPassword(request.getParameter("password"));
+        user.setEmailAddress(request.getParameter("email_address"));
+        
+        Set<ConstraintViolation<RegisterUser>> violations
+                = validator.validate(user);
+        
+        // INVALID REQUEST
+        if (violations.size() > 0) {
+            JsonArrayBuilder errors = Json.createArrayBuilder();
+            violations.forEach(v -> errors.add(v.getMessage()));
+            responseObjectBuilder
+                    .add("status", "error")
+                    .add("errors", errors.build());
+            response.setStatus(400);
+        
+        // VALID REQUEST
+        } else {
+            try {
+                List<String> dbViolations = userDAO.validate(user);
+                
+                if(dbViolations.size() > 0){
+                    JsonArrayBuilder errors = Json.createArrayBuilder();
+                    dbViolations.forEach(v -> errors.add(v));
+                    responseObjectBuilder
+                            .add("status", "error")
+                            .add("errors", errors.build());
+                    response.setStatus(400);
+                } else {
+                    userDAO.createUser(user);
+                    responseObjectBuilder.add("status", "success");
+                    response.setStatus(201);
+                }
+            } catch(AuthDBException ex){
+                LOGGER.warn(ex);
+                responseObjectBuilder.add("status", "error");
+                response.setStatus(500);
+            }
+        }
+        
+        try (PrintWriter out = response.getWriter()) {
+            out.println(responseObjectBuilder.build().toString());
+        }
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
+        return "Register servlet for creating new users";
+    }
 
 }
