@@ -10,8 +10,9 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.util.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import tech.flapweb.auth.domain.LoginUser;
 import tech.flapweb.auth.domain.RegisterUser;
 
@@ -21,11 +22,11 @@ import tech.flapweb.auth.domain.RegisterUser;
  */
 public class UserDAO {
     
-    private static final Logger LOGGER = Log.getLogger(UserDAO.class);
+    private final Logger logger = LoggerFactory.getLogger(UserDAO.class);
     
     public Boolean exists(LoginUser user) throws AuthDBException {
         
-        Boolean exists = false;
+        Boolean exists;
         Connection con = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -42,18 +43,18 @@ public class UserDAO {
             exists = rs.isBeforeFirst();
             if(exists){
                 rs.next();
-                LOGGER.info(String.format("Retrieved user %s , email %s", rs.getString(1), rs.getString(2)));
+                logger.info("Retrieved user {} , email {}", rs.getString(1), rs.getString(2));
             }
             
             return exists;
         
         } catch(NamingException | SQLException ex) {
-            LOGGER.warn(ex);
+            logger.error("Exception",ex);
             throw new AuthDBException("DB error while retrieving user");
         } finally {
-            try { if(rs != null) rs.close(); } catch (SQLException e) { LOGGER.warn(e); }
-            try { if(stmt != null) stmt.close(); } catch (SQLException e) { LOGGER.warn(e); }
-            try { if(con != null) con.close(); } catch (SQLException e) { LOGGER.warn(e); }
+            try { if(rs != null) rs.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
+            try { if(stmt != null) stmt.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
+            try { if(con != null) con.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
         }
         
     }
@@ -76,11 +77,11 @@ public class UserDAO {
             stmt.execute();
             
         } catch(NamingException | SQLException ex){
-            LOGGER.warn(ex);
+            logger.error("Exception occured",ex);
             throw new AuthDBException("DB error while creating user");
         } finally {
-            try { if(stmt != null) stmt.close(); } catch (SQLException e) { LOGGER.warn(e); }
-            try { if(con != null) con.close(); } catch (SQLException e) { LOGGER.warn(e); }
+            try { if(stmt != null) stmt.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
+            try { if(con != null) con.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
         }
     }
     
@@ -108,12 +109,12 @@ public class UserDAO {
             return violations;
             
         } catch(SQLException | NamingException ex){
-            LOGGER.warn(ex);
+            logger.error("Exception",ex);
             throw new AuthDBException("DB error while validating user");
         } finally {
-            try { if(rs != null) rs.close(); } catch (SQLException e) { LOGGER.warn(e); }
-            try { if(stmt != null) stmt.close(); } catch (SQLException e) { LOGGER.warn(e); }
-            try { if(con != null) con.close(); } catch (SQLException e) { LOGGER.warn(e); }
+            try { if(rs != null) rs.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
+            try { if(stmt != null) stmt.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
+            try { if(con != null) con.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
         }
     }
     

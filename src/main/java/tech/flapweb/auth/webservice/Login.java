@@ -17,8 +17,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.util.log.Logger;
 import tech.flapweb.auth.App;
 import tech.flapweb.auth.AppSettingsException;
 import tech.flapweb.auth.dao.UserDAO;
@@ -26,11 +24,13 @@ import tech.flapweb.auth.dao.UserDAO.AuthDBException;
 import tech.flapweb.auth.domain.LoginUser;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "Login", urlPatterns = {"/login"})
 public class Login extends HttpServlet {
 
-    private static final Logger LOGGER = Log.getLogger(Login.class);
+    private final Logger logger = LoggerFactory.getLogger(Login.class);
     private Validator validator;
     private UserDAO userDAO;
 
@@ -84,7 +84,7 @@ public class Login extends HttpServlet {
                     response.setStatus(400);
                 }
             } catch (AuthDBException | AppSettingsException | JWTCreationException ex) {
-                LOGGER.warn(ex);
+                logger.error("Exception",ex);
                 responseObjectBuilder.add("status", "error");
                 response.setStatus(500);
             }

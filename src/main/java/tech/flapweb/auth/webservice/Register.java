@@ -17,8 +17,8 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.util.log.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tech.flapweb.auth.dao.UserDAO;
 import tech.flapweb.auth.dao.UserDAO.AuthDBException;
 import tech.flapweb.auth.domain.RegisterUser;
@@ -31,7 +31,7 @@ import tech.flapweb.auth.domain.RegisterUser;
 public class Register extends HttpServlet {
 
     
-    private static final Logger LOGGER = Log.getLogger(Login.class);
+    private final Logger logger = LoggerFactory.getLogger(Login.class);
     private Validator validator;
     private UserDAO userDAO;
 
@@ -84,7 +84,7 @@ public class Register extends HttpServlet {
                     response.setStatus(201);
                 }
             } catch(AuthDBException ex){
-                LOGGER.warn(ex);
+                logger.error("Exception",ex);
                 responseObjectBuilder.add("status", "error");
                 response.setStatus(500);
             }
