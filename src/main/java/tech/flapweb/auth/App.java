@@ -37,7 +37,7 @@ public class App implements ServletContextListener{
         Properties prop = new Properties();
     	InputStream input = null;
         String env = ("prod".equalsIgnoreCase(System.getProperty("ENV"))) ? "prod" : "dev";
-        logger.info("Environment: {}", env);
+        logger.info("Environment is: {}", env);
         try {
             
             input = App.class.getClassLoader().getResourceAsStream("app.properties");
