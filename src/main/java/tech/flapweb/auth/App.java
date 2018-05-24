@@ -36,21 +36,19 @@ public class App implements ServletContextListener{
         
         Properties prop = new Properties();
     	InputStream input = null;
-        String env = ("prod".equalsIgnoreCase(System.getProperty("ENV"))) ? "prod" : "dev";
-        logger.info("Environment is: {}", env);
         try {
             
             input = App.class.getClassLoader().getResourceAsStream("app.properties");
             prop.load(input);
             
             // PRIVATE KEY SETUP
-            byte[] privateKeyBytes = Files.readAllBytes(Paths.get(prop.getProperty(env + ".ssl.pk.location")));
+            byte[] privateKeyBytes = Files.readAllBytes(Paths.get(prop.getProperty("ssl.pk.location")));
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PKCS8EncodedKeySpec privateSpec = new PKCS8EncodedKeySpec(privateKeyBytes);
             PK = (RSAPrivateKey) kf.generatePrivate(privateSpec);
             
             //PUBLIC KEY SETUP
-            byte[] publicKeyBytes = Files.readAllBytes(Paths.get(prop.getProperty(env + ".ssl.pub.location")));
+            byte[] publicKeyBytes = Files.readAllBytes(Paths.get(prop.getProperty("ssl.pub.location")));
             X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(publicKeyBytes);
             PUB = (RSAPublicKey) kf.generatePublic(publicSpec);
             
