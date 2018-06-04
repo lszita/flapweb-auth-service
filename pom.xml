@@ -89,8 +89,8 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
         </dependency>
-
-
+        
+        
     </dependencies>
 
     <build>
@@ -124,6 +124,7 @@
                     <webApp>
                         <contextPath>/auth</contextPath>
                         <jettyEnvXml>${project.basedir}/jetty-pg-ds.xml</jettyEnvXml>
+                        <webInfIncludeJarPattern>.*/spring-[^/]*\.jar$</webInfIncludeJarPattern>
                     </webApp>
                 </configuration>
             </plugin>
