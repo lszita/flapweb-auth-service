@@ -10,6 +10,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,18 +35,21 @@ public class UserDAO {
         try{
             con = getConnection();
             
-            String query = "SELECT username, email_address FROM users WHERE username = ? AND password = ?";
+            String query = "SELECT username, email_address, password FROM users WHERE username = ?";
             stmt = con.prepareStatement(query);
             stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getPassword());
 
             rs = stmt.executeQuery();
             exists = rs.isBeforeFirst();
             if(exists){
                 rs.next();
-                logger.info("Retrieved user {} , email {}", rs.getString(1), rs.getString(2));
+                if(BCrypt.checkpw(user.getPassword(), rs.getString(3))){
+                    logger.info("Logged in user {} , email {}", 
+                                    rs.getString(1), rs.getString(2));
+                    return true;
+                } 
+                return false;
             }
-            
             return exists;
         
         } catch(NamingException | SQLException ex) {
@@ -61,7 +65,6 @@ public class UserDAO {
     
     
     public void createUser(RegisterUser user) throws AuthDBException{
-        
         Connection con = null;
         PreparedStatement stmt = null;
         
@@ -71,7 +74,7 @@ public class UserDAO {
             String query = "INSERT INTO users(username, password, email_address) VALUES(?,?,?)";
             stmt = con.prepareStatement(query);
             stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getPassword());
+            stmt.setString(2, BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
             stmt.setString(3, user.getEmailAddress());
             
             stmt.execute();
