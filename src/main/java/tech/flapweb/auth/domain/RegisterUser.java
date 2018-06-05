@@ -11,6 +11,9 @@ public class RegisterUser extends LoginUser{
     @Email(message = "Email address must be a valid email address")
     @Size(max = 50, message = "Email address must be 3-30 characters")
     private String emailAddress;
+    
+    @NotNull(message="Missing captcha token")
+    private String captchaToken;
 
     public String getEmailAddress() {
         return emailAddress;
@@ -19,4 +22,13 @@ public class RegisterUser extends LoginUser{
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
     }
+
+    public String getCaptchaToken() {
+        return captchaToken;
+    }
+
+    public void setCaptchaToken(String captchaToken) {
+        this.captchaToken = captchaToken;
+    }
+    
 }
