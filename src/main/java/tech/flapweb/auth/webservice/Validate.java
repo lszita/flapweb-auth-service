@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package tech.flapweb.auth.webservice;
 
 import com.auth0.jwt.JWT;
@@ -17,29 +12,18 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.util.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tech.flapweb.auth.App;
 import tech.flapweb.auth.AppSettingsException;
 
-/**
- *
- * @author lszita
- */
 @WebServlet(name = "Validate", urlPatterns = {"/validate"})
 public class Validate extends HttpServlet {
 
+    private final Logger logger = LoggerFactory.getLogger(Login.class);
     
-    private static final org.eclipse.jetty.util.log.Logger LOGGER = Log.getLogger(Validate.class);
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
@@ -53,50 +37,18 @@ public class Validate extends HttpServlet {
                 DecodedJWT jwt = verifier.verify(token);
                 out.println(jwt.getSubject());
             }catch (JWTVerificationException ex) {
-                out.println("this boi INVALID AND DENIED");
+                response.setStatus(400);
+                out.println("invalid");
+                logger.error("An invalid token was sent for validation",ex);
             } catch (AppSettingsException ex) {
-               LOGGER.warn(ex);
+               logger.error("Exception",ex);
+               response.setStatus(500);
             }
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
-
+    }
 }
