@@ -1,38 +1,43 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package tech.flapweb.auth.captcha;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tech.flapweb.auth.App;
 import tech.flapweb.auth.AppSettingsException;
 
 public class Captcha {
     
-    private static final Logger logger = LoggerFactory.getLogger(Captcha.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Captcha.class);
+    private static final String API_URL = "https://www.google.com/recaptcha/api/siteverify";
     
-    public static boolean isValid(String token) throws AppSettingsException{
+    public static boolean isValid(String secret, String token) throws CaptchaException{
+        
+        if(token == null || ("").equals(token) || secret == null || ("").equals(secret)){
+            return false;
+        }
+        boolean result = false;
         
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("secret", App.getCaptchaSecret());
+        parameters.put("secret", secret);
         parameters.put("response", token);
         
         try {
-            URL url = new URL("https://www.google.com/recaptcha/api/siteverify");
+            URL url = new URL(API_URL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setDoOutput(true);
             con.setRequestMethod("POST");
@@ -50,15 +55,21 @@ public class Captcha {
             while ((inputLine = in.readLine()) != null) {
                 content.append(inputLine);
             }
+            
             in.close();
             con.disconnect();
-        
+            
+            LOGGER.info("Response content is  {}", content );
+            JsonObject response = parseResponse(content.toString());
+            result = response.getBoolean("success");   
         } catch (MalformedURLException ex) {
-            logger.error("Exception",ex);
+            LOGGER.error("Exception",ex);
+            throw new CaptchaException(ex.getMessage());
         } catch (IOException ex) {
-            logger.error("Exception",ex);
+            LOGGER.error("Exception",ex);
+            throw new CaptchaException(ex.getMessage());
         }
-        return false;
+        return result;
     }
     
     private static String getParamsString(Map<String, String> params) 
@@ -76,6 +87,13 @@ public class Captcha {
         return resultString.length() > 0
           ? resultString.substring(0, resultString.length() - 1)
           : resultString;
+    }
+    
+    private static JsonObject parseResponse(String jsonString){
+        JsonReader jsonReader = Json.createReader(new StringReader(jsonString));
+        JsonObject object = jsonReader.readObject();
+        jsonReader.close();
+        return object;
     }
     
 }

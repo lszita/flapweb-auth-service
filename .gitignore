@@ -4,3 +4,4 @@ src/main/resources/app.properties
 nb-configuration.xml
 nbactions.xml
 src/main/webapp/WEB-INF/weblogic.xml
+/nbproject/
