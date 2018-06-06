@@ -25,7 +25,7 @@ public class App implements ServletContextListener{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     
-    private static final String PROPERTIES_RESOURCE = "appp.properties";
+    private static final String PROPERTIES_RESOURCE = "app.properties";
     private static Properties PROPERTIES;
     
     @Override
