@@ -30,3 +30,9 @@ jobs:
         
       # run tests!
       - run: mvn test
+
+      - store_test_results:  
+          path: target/surefire-reports
+
+      - store_artifacts:
+          path: target/flapweb-auth-service-1.war
