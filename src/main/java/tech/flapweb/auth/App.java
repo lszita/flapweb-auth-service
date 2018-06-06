@@ -1,5 +1,7 @@
 package tech.flapweb.auth;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -23,7 +25,7 @@ public class App implements ServletContextListener{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     
-    private static final String PROPERTIES_RESOURCE = "app.properties";
+    private static final String PROPERTIES_RESOURCE = "appp.properties";
     private static Properties PROPERTIES;
     
     @Override
@@ -36,6 +38,11 @@ public class App implements ServletContextListener{
             
             LOGGER.info("Reading properties...");
             input = App.class.getClassLoader().getResourceAsStream(PROPERTIES_RESOURCE);
+            if(input == null){
+                String path = System.getenv("jetty_base") + "/resources/" + PROPERTIES_RESOURCE;
+                LOGGER.info("from file {}", path);
+                input = new FileInputStream(new File(path));
+            }
             PROPERTIES.load(input);
             
         } catch (IOException ex) {
