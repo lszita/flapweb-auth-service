@@ -29,7 +29,7 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
         
       # run tests!
-      - run: mvn test
+      - run: mvn package
 
       - store_test_results:  
           path: target/surefire-reports
