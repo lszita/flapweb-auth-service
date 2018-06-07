@@ -44,7 +44,7 @@ jobs:
      - run:
          name: Deploy Over SSH
          command: | 
-            scp -r ~/project/* "$SSH_USER@$SSH_HOST:$SSH_DEPLOY_PATH"
+            scp -r ~/project/ "$SSH_USER@$SSH_HOST:$SSH_DEPLOY_PATH"
 
 
 workflows:
