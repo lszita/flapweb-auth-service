@@ -44,8 +44,7 @@ jobs:
      - run:
          name: Deploy Over SSH
          command: | 
-            scp target/flapweb-auth-service-1.war "$CIUSER@$SSH_HOST:$CI_PATH"
-         #command: echo "${HOST} $HOST"
+            scp target/flapweb-auth-service-1.war "$SSH_USER@$SSH_HOST:$SSH_DEPLOY_PATH"
 
 
 workflows:
