@@ -37,6 +37,14 @@ jobs:
       - store_artifacts:
           path: target/flapweb-auth-service-1.war
 
+      - save_cache:
+          key: war-cache
+          paths: 
+            - target/flapweb-auth-service-1.war
+
+
+
+
   deploy:
    machine: 
      enabled: true
@@ -45,7 +53,7 @@ jobs:
      - run:
          name: Deploy Over SSH
          command: | 
-            scp -r ~/flapweb-auth-service "$SSH_USER@$SSH_HOST:$SSH_DEPLOY_PATH"
+            scp -r ~/flapweb-auth-service/target/flapweb-auth-service-1.war "$SSH_USER@$SSH_HOST:$SSH_DEPLOY_PATH"
 
 
 workflows:
