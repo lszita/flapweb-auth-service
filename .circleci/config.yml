@@ -43,8 +43,7 @@ jobs:
    steps: 
      - run:
          name: Deploy Over SSH
-         command: |
-       "scp target/flapweb-auth-service-1.war $CIUSER@$HOST:$PATH"
+         command: "scp target/flapweb-auth-service-1.war $CIUSER@$HOST:$PATH"
 
 
 
