@@ -40,6 +40,7 @@ jobs:
   deploy:
    machine: 
      enabled: true
+   working_directory: ~/flapweb-auth-service
    steps: 
      - run:
          name: Deploy Over SSH
