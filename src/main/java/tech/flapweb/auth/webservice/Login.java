@@ -99,6 +99,4 @@ public class Login extends HttpServlet {
     public String getServletInfo() {
         return "Login Servlet providing JWT token";
     }
-
-    
 }

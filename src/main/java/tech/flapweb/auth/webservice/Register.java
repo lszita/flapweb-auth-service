@@ -3,7 +3,6 @@ package tech.flapweb.auth.webservice;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.Set;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
@@ -13,10 +12,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.flapweb.auth.App;
@@ -30,15 +25,11 @@ import tech.flapweb.auth.domain.RegisterUser;
 @WebServlet(name = "Register", urlPatterns = {"/register"})
 public class Register extends HttpServlet {
 
-    
     private final Logger logger = LoggerFactory.getLogger(Login.class);
-    private Validator validator;
     private UserDAO userDAO;
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
         userDAO = new UserDAO();
     }
     
@@ -51,53 +42,33 @@ public class Register extends HttpServlet {
         JsonArrayBuilder errors = Json.createArrayBuilder();
         
         RegisterUser user = new RegisterUser();
-        user.setUsername(request.getParameter("username"));
-        user.setPassword(request.getParameter("password"));
-        user.setEmailAddress(request.getParameter("email_address"));
-        user.setCaptchaToken(request.getParameter("captcha_token"));
-        
-        Set<ConstraintViolation<RegisterUser>> violations
-                = validator.validate(user);
-        
-        // INVALID REQUEST
-        if (violations.size() > 0) {
-            violations.forEach(v -> errors.add(v.getMessage()));
-            responseObjectBuilder
-                    .add("status", "error")
-                    .add("errors", errors.build());
-            response.setStatus(400);
-        
-        // VALID REQUEST
-        } else {
-            try {
-                // VALIDATE TOKEN
-                if(!Captcha.isValid(App.getCaptchaSecret(), user.getCaptchaToken())){
-                    errors.add("Invalid captcha token");
-                    responseObjectBuilder
-                            .add("status", "error")
-                            .add("errors", errors.build());
+        user.setFromHttpRequest(request);
+     
+        try {
+            // VALIDATE TOKEN
+            if(!Captcha.isValid(App.getCaptchaSecret(), user.getCaptchaToken())){
+                errors.add("Invalid captcha token");
+                responseObjectBuilder.add("status", "error");
+                responseObjectBuilder.add("errors", errors.build());
+                response.setStatus(400);
+            } else {
+                // VALIDATE IF EXISTS
+                List<String> dbViolations = userDAO.validate(user);
+                if(dbViolations.size() > 0){
+                    dbViolations.forEach(v -> errors.add(v));
+                    responseObjectBuilder.add("status", "error");
+                    responseObjectBuilder.add("errors", errors.build());
                     response.setStatus(400);
                 } else {
-                    // VALIDATE IF EXISTS
-                    List<String> dbViolations = userDAO.validate(user);
-
-                    if(dbViolations.size() > 0){
-                        dbViolations.forEach(v -> errors.add(v));
-                        responseObjectBuilder
-                                .add("status", "error")
-                                .add("errors", errors.build());
-                        response.setStatus(400);
-                    } else {
-                        userDAO.createUser(user);
-                        responseObjectBuilder.add("status", "success");
-                        response.setStatus(201);
-                    }
+                    userDAO.createUser(user);
+                    responseObjectBuilder.add("status", "success");
+                    response.setStatus(201);
                 }
-            } catch(AuthDBException | AppSettingsException | CaptchaException ex){
-                logger.error("Exception",ex);
-                responseObjectBuilder.add("status", "error");
-                response.setStatus(500);
             }
+        } catch(AuthDBException | AppSettingsException | CaptchaException ex){
+            logger.error("Exception",ex);
+            responseObjectBuilder.add("status", "error");
+            response.setStatus(500);
         }
         
         try (PrintWriter out = response.getWriter()) {
@@ -109,5 +80,4 @@ public class Register extends HttpServlet {
     public String getServletInfo() {
         return "Register servlet for creating new users";
     }
-
 }
