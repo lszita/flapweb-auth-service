@@ -90,9 +90,10 @@ public class Captcha {
     }
     
     private static JsonObject parseResponse(String jsonString){
-        JsonReader jsonReader = Json.createReader(new StringReader(jsonString));
-        JsonObject object = jsonReader.readObject();
-        jsonReader.close();
+        JsonObject object;
+        try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
+            object = jsonReader.readObject();
+        }
         return object;
     }
     

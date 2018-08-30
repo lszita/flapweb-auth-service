@@ -18,8 +18,9 @@ import javax.servlet.http.HttpServletResponse;
 import tech.flapweb.auth.domain.HttpDomain;
 import tech.flapweb.auth.domain.LoginUser;
 import tech.flapweb.auth.domain.RegisterUser;
+import tech.flapweb.auth.domain.RenewalRequest;
 
-@WebFilter(urlPatterns={"/register","/login"})
+@WebFilter(urlPatterns={"/register","/login","/renew"})
 public class ValidatorFilter implements Filter{
 
     @Override
@@ -42,6 +43,8 @@ public class ValidatorFilter implements Filter{
             httpDomainClass = new RegisterUser();
         } else if(uri != null && uri.contains("login")){
             httpDomainClass = new LoginUser();
+        } else if(uri != null && uri.contains("renew")){
+            httpDomainClass = new RenewalRequest();
         } else return;
         
         httpDomainClass.setFromHttpRequest(request);

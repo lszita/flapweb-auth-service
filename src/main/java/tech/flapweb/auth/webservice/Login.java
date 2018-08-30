@@ -3,20 +3,13 @@ package tech.flapweb.auth.webservice;
 import com.auth0.jwt.JWT;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Set;
 import javax.json.Json;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import tech.flapweb.auth.App;
 import tech.flapweb.auth.AppSettingsException;
 import tech.flapweb.auth.dao.UserDAO;
@@ -24,22 +17,17 @@ import tech.flapweb.auth.dao.UserDAO.AuthDBException;
 import tech.flapweb.auth.domain.LoginUser;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import java.util.Date;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tech.flapweb.auth.utils.TokenGenerator;
 
 @WebServlet(name = "Login", urlPatterns = {"/login"})
 public class Login extends HttpServlet {
 
     private final Logger logger = LoggerFactory.getLogger(Login.class);
-    private Validator validator;
-    private UserDAO userDAO;
-
-    @Override
-    public void init(ServletConfig servletConfig) throws ServletException {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
-        userDAO = new UserDAO();
-    }
+    private UserDAO userDAO = new UserDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -49,50 +37,44 @@ public class Login extends HttpServlet {
         JsonObjectBuilder responseObjectBuilder = Json.createObjectBuilder();
 
         LoginUser user = new LoginUser();
-        user.setUsername(request.getParameter("username"));
-        user.setPassword(request.getParameter("password"));
-
-        Set<ConstraintViolation<LoginUser>> violations
-                = validator.validate(user);
+        user.setFromHttpRequest(request);
         
-        // INVALID REQUEST
-        if (violations.size() > 0) {
-            JsonArrayBuilder errors = Json.createArrayBuilder();
-            violations.forEach(v -> errors.add(v.getMessage()));
-            responseObjectBuilder
-                    .add("status", "error")
-                    .add("errors", errors.build());
-            response.setStatus(400);
-        
-        // VALID REQUEST
-        } else {
-            try {
-                String token= null;
-                
-                if(userDAO.exists(user)) {
-                    Algorithm algorithmRS = Algorithm.RSA256(null, App.getPK());
-                    token = JWT.create()
-                        .withIssuer("flapweb_auth")
-                        .withSubject(user.getUsername())
-                        .sign(algorithmRS);
-                    responseObjectBuilder
-                        .add("status", "success")
-                        .add("token", token);
-                    response.setStatus(200);
-                } else {
-                    responseObjectBuilder.add("status", "failed");
-                    response.setStatus(400);
-                }
-            } catch (AuthDBException | AppSettingsException | JWTCreationException ex) {
-                logger.error("Exception",ex);
-                responseObjectBuilder.add("status", "error");
-                response.setStatus(500);
+        try {
+            if(userDAO.exists(user)) {
+                responseObjectBuilder
+                    .add("status", "success")
+                    .add("access_token", accessToken(user))
+                    .add("refresh_token", refreshToken(user));
+                response.setStatus(200);
+            } else {
+                responseObjectBuilder.add("status", "failed");
+                response.setStatus(400);
             }
+        } catch (AuthDBException | AppSettingsException | JWTCreationException ex) {
+            logger.error("Exception",ex);
+            responseObjectBuilder.add("status", "error");
+            response.setStatus(500);
         }
+        
 
         try (PrintWriter out = response.getWriter()) {
             out.println(responseObjectBuilder.build().toString());
         }
+    }
+    
+    private String accessToken(LoginUser user) throws AppSettingsException{
+        Algorithm algorithmRS = Algorithm.RSA256(null, App.getPK());
+        return JWT.create()
+                .withIssuer("flapweb_auth")
+                .withSubject(user.getUsername())
+                .withExpiresAt(new Date(new Date().getTime() + 2 * 60000 ))
+                .sign(algorithmRS);
+    }
+    
+    private String refreshToken(LoginUser user){
+        String token = new TokenGenerator(128).getNextToken();
+        App.getActiveUserStore().put(user.getUsername(), token);
+        return token;
     }
 
     @Override

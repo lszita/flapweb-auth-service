@@ -14,6 +14,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -22,37 +24,21 @@ import org.slf4j.LoggerFactory;
 
 @WebListener
 public class App implements ServletContextListener{
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     
     private static final String PROPERTIES_RESOURCE = "app.properties";
-    private static Properties PROPERTIES;
+    
+    private static final Properties PROPERTIES = new Properties();
+    private static final ConcurrentMap<String,String> ACTIVE_USER_STORE = new ConcurrentHashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+    
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         LOGGER.info("Auth service starting up");
         
-        PROPERTIES = new Properties();
-    	InputStream input = null;
-        try {
-            
-            LOGGER.info("Reading properties...");
-            input = App.class.getClassLoader().getResourceAsStream(PROPERTIES_RESOURCE);
-            if(input == null){
-                String path = System.getenv("jetty_base") + "/resources/" + PROPERTIES_RESOURCE;
-                LOGGER.info("from file {}", path);
-                input = new FileInputStream(new File(path));
-            }
-            PROPERTIES.load(input);
-            
-        } catch (IOException ex) {
-            LOGGER.error("Cannot read properties file",ex);
-        } finally {
-            try {
-                if(input != null) input.close();
-            } catch (IOException ex) {
-                LOGGER.error("Cannot close IO stream",ex);
-            }
+        if (!getPropsFromWAR()){
+            LOGGER.info("no {} found in WAR, loading properties from PATH", PROPERTIES_RESOURCE);
+            getPropsFromPath();
         }
     }
 
@@ -89,7 +75,35 @@ public class App implements ServletContextListener{
         return secret;
     }
         
+    private boolean getPropsFromWAR(){
+        try (InputStream input = App.class.getClassLoader().getResourceAsStream(PROPERTIES_RESOURCE)){
+            if(input == null) return false;
+            PROPERTIES.load(input);
+        } catch (IOException ex) {
+            LOGGER.error("Cannot read properties file",ex);
+            return false;
+        } 
+        return true;
+    }
+    
+    private boolean getPropsFromPath(){
+        String path = System.getenv("jetty_base") + "/resources/" + PROPERTIES_RESOURCE;
+        try (InputStream input = new FileInputStream(new File(path))){
+            PROPERTIES.load(input);
+        } catch (IOException ex) {
+            LOGGER.error("Cannot read properties file",ex);
+            return false;
+        }
+        return true;
+    }
+    
+    public static ConcurrentMap<String,String> getActiveUserStore(){
+        return ACTIVE_USER_STORE;
+    }
+        
     @Override
-    public void contextDestroyed(ServletContextEvent sce) {}
+    public void contextDestroyed(ServletContextEvent sce) {
+        LOGGER.info("SHUT DOWN");
+    }
     
 }

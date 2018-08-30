@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import redis.clients.jedis.Jedis;
 import tech.flapweb.auth.App;
 
 public class CaptchaTest {
@@ -42,4 +43,6 @@ public class CaptchaTest {
         boolean result = Captcha.isValid(App.getCaptchaSecret(),token);
         assertEquals(expResult, result);
     }
+    
+    
 }

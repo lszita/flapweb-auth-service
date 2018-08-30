@@ -8,11 +8,13 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 public class LoginUser implements HttpDomain{
     
     @NotNull(message = "Username cannot be null")
+    @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Username must contain only alphanumeric symbols")
     @Size(min = 3, max = 30, message = "Username must be 3-30 characters")
     private String username;
     @NotNull(message = "Password cannot be null")

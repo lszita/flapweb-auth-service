@@ -6,7 +6,6 @@ import java.util.List;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -26,13 +25,8 @@ import tech.flapweb.auth.domain.RegisterUser;
 public class Register extends HttpServlet {
 
     private final Logger logger = LoggerFactory.getLogger(Login.class);
-    private UserDAO userDAO;
+    private UserDAO userDAO = new UserDAO();
 
-    @Override
-    public void init(ServletConfig servletConfig) throws ServletException {
-        userDAO = new UserDAO();
-    }
-    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
