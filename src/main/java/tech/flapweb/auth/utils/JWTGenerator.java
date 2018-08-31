@@ -25,5 +25,4 @@ public class JWTGenerator {
             .withExpiresAt(new Date(new Date().getTime() + EXPIRES_MINUTES * 60000 ))
             .sign(algorithmRS);
     }
-    
 }
