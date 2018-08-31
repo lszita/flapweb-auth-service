@@ -25,7 +25,7 @@ import tech.flapweb.auth.domain.RegisterUser;
 public class Register extends HttpServlet {
 
     private final Logger logger = LoggerFactory.getLogger(Login.class);
-    private UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO = new UserDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

@@ -20,6 +20,7 @@ import tech.flapweb.auth.App;
 import tech.flapweb.auth.AppSettingsException;
 import tech.flapweb.auth.domain.LoginUser;
 import tech.flapweb.auth.domain.RenewalRequest;
+import tech.flapweb.auth.utils.JWTGenerator;
 
 @WebServlet(name = "Renew", urlPatterns = {"/renew"}) 
 public class Renew extends HttpServlet {
@@ -46,16 +47,17 @@ public class Renew extends HttpServlet {
                 
             } else {
                 LOGGER.info("user is not logged in, no token");
+                responseObjectBuilder.add("status", "failed");
                 response.setStatus(400);
             }
         } catch(JWTDecodeException ex) {
-            response.setStatus(400);
             LOGGER.info("cannot decode token, invalid token");
+            responseObjectBuilder.add("status", "failed");
+            response.setStatus(400);
         } catch(AppSettingsException ex) {
             response.setStatus(500);
             LOGGER.error("Cannot generate token",ex);
         }
-        
         
         try (PrintWriter out = response.getWriter()) {
             out.println(responseObjectBuilder.build().toString());
@@ -63,13 +65,8 @@ public class Renew extends HttpServlet {
     }
     
     
-    private String accessToken(String username) throws AppSettingsException{
-        Algorithm algorithmRS = Algorithm.RSA256(null, App.getPK());
-        return JWT.create()
-                .withIssuer("flapweb_auth")
-                .withSubject(username)
-                .withExpiresAt(new Date(new Date().getTime() + 2 * 60000 ))
-                .sign(algorithmRS);
+    private String accessToken(String subject) throws AppSettingsException{
+        return new JWTGenerator(subject).getNextJWT();
     }
     
     @Override

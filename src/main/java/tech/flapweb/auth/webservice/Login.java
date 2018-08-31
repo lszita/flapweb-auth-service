@@ -1,6 +1,5 @@
 package tech.flapweb.auth.webservice;
 
-import com.auth0.jwt.JWT;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.json.Json;
@@ -15,19 +14,17 @@ import tech.flapweb.auth.AppSettingsException;
 import tech.flapweb.auth.dao.UserDAO;
 import tech.flapweb.auth.dao.UserDAO.AuthDBException;
 import tech.flapweb.auth.domain.LoginUser;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
-import java.util.Date;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tech.flapweb.auth.utils.JWTGenerator;
 import tech.flapweb.auth.utils.TokenGenerator;
 
 @WebServlet(name = "Login", urlPatterns = {"/login"})
 public class Login extends HttpServlet {
 
     private final Logger logger = LoggerFactory.getLogger(Login.class);
-    private UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO = new UserDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -63,15 +60,14 @@ public class Login extends HttpServlet {
     }
     
     private String accessToken(LoginUser user) throws AppSettingsException{
-        Algorithm algorithmRS = Algorithm.RSA256(null, App.getPK());
-        return JWT.create()
-                .withIssuer("flapweb_auth")
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(new Date().getTime() + 2 * 60000 ))
-                .sign(algorithmRS);
+        return new JWTGenerator(user.getUsername()).getNextJWT();
     }
     
     private String refreshToken(LoginUser user){
+        if(App.getActiveUserStore().containsKey(user.getUsername())){
+            return App.getActiveUserStore().get(user.getUsername());
+        }
+        
         String token = new TokenGenerator(128).getNextToken();
         App.getActiveUserStore().put(user.getUsername(), token);
         return token;
