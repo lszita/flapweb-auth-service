@@ -25,7 +25,7 @@ public class UserDAO {
     
     private final Logger logger = LoggerFactory.getLogger(UserDAO.class);
     
-    public Boolean exists(LoginUser user, boolean active) throws AuthDBException {
+    public Boolean exists(LoginUser user, boolean activeOnly) throws AuthDBException {
         
         Boolean exists;
         Connection con = null;
