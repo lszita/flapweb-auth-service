@@ -36,7 +36,7 @@ public class UserDAO {
             con = getConnection();
             
             String query = "SELECT username, email_address, password FROM users WHERE username = ?";
-            if(active){
+            if(activeOnly){
                 query += " AND active = TRUE";
             }
             stmt = con.prepareStatement(query);
