@@ -20,7 +20,7 @@ import tech.flapweb.auth.domain.LoginUser;
 import tech.flapweb.auth.domain.RegisterUser;
 import tech.flapweb.auth.domain.RenewalRequest;
 
-@WebFilter(urlPatterns={"/register","/login","/renew"})
+@WebFilter(servletNames={"Register","Login","Renew"})
 public class ValidatorFilter implements Filter{
 
     @Override
@@ -28,9 +28,14 @@ public class ValidatorFilter implements Filter{
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        
+               
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
+        
+        if(!request.getMethod().equalsIgnoreCase("POST")){
+            response.setStatus(405);
+            return;
+        }
         
         response.setContentType("application/json;charset=UTF-8");
         JsonObjectBuilder responseObjectBuilder = Json.createObjectBuilder();

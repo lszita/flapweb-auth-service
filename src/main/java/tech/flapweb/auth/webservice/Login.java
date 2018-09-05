@@ -37,7 +37,7 @@ public class Login extends HttpServlet {
         user.setFromHttpRequest(request);
         
         try {
-            if(userDAO.exists(user)) {
+            if(userDAO.exists(user, true)) {
                 responseObjectBuilder
                     .add("status", "success")
                     .add("access_token", accessToken(user))

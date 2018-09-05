@@ -25,7 +25,7 @@ public class UserDAO {
     
     private final Logger logger = LoggerFactory.getLogger(UserDAO.class);
     
-    public Boolean exists(LoginUser user) throws AuthDBException {
+    public Boolean exists(LoginUser user, boolean active) throws AuthDBException {
         
         Boolean exists;
         Connection con = null;
@@ -36,6 +36,9 @@ public class UserDAO {
             con = getConnection();
             
             String query = "SELECT username, email_address, password FROM users WHERE username = ?";
+            if(active){
+                query += " AND active = TRUE";
+            }
             stmt = con.prepareStatement(query);
             stmt.setString(1, user.getUsername());
 
