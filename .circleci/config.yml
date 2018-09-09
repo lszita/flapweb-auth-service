@@ -52,7 +52,7 @@ jobs:
    steps:
      - restore_cache:
          keys:
-           k-{{ .BuildNum }}-war-cache
+           k-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}-war-cache
 
      - run:
          name: Deploy Over SSH
