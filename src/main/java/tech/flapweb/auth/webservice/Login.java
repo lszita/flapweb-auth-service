@@ -55,6 +55,7 @@ public class Login extends HttpServlet {
                     cookie.setPath("/");
                     cookie.setSecure(true);
                     response.addCookie(cookie);
+                    logger.info("cookie added");
                 } else {
                     responseObjectBuilder.add("refresh_token", refreshToken(user));
                 }
