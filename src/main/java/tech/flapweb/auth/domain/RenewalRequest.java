@@ -2,6 +2,7 @@ package tech.flapweb.auth.domain;
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -43,7 +44,11 @@ public class RenewalRequest implements HttpDomain{
     @Override
     public void setFromHttpRequest(HttpServletRequest request) {
         this.setAccessToken(request.getParameter("access_token"));
-        this.setRefreshToken(request.getParameter("refresh_token"));
+        if(("COOKIE").equalsIgnoreCase(request.getParameter("refresh_token"))){
+            this.setRefreshToken(getRefreshTokenCookie(request));
+        } else {
+            this.setRefreshToken(request.getParameter("refresh_token"));
+        }
     }
 
     @Override
@@ -54,5 +59,16 @@ public class RenewalRequest implements HttpDomain{
         Set<String> errorMessages = new HashSet<>();
         violations.forEach((e) -> errorMessages.add(e.getMessage()));
         return errorMessages;
+    }
+    
+    private String getRefreshTokenCookie(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies();
+        if(cookies != null){
+            for(Cookie cookie : cookies){
+                if(("access_token").equalsIgnoreCase(cookie.getName()))
+                   return cookie.getValue();
+            }
+        }
+        return null;
     }
 }

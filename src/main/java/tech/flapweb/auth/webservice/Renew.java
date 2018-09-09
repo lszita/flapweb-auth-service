@@ -33,7 +33,7 @@ public class Renew extends HttpServlet {
     
         RenewalRequest ren = new RenewalRequest();
         ren.setFromHttpRequest(request);
-        
+                
         JsonObjectBuilder responseObjectBuilder = Json.createObjectBuilder();
         try {
             DecodedJWT jwt = JWT.decode(ren.getAccessToken());

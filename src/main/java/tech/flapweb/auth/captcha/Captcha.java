@@ -36,6 +36,7 @@ public class Captcha {
         parameters.put("secret", secret);
         parameters.put("response", token);
         
+        
         try {
             URL url = new URL(API_URL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -59,7 +60,7 @@ public class Captcha {
             in.close();
             con.disconnect();
             
-            LOGGER.info("Response content is  {}", content );
+            LOGGER.info("Response content {}", content );
             JsonObject response = parseResponse(content.toString());
             result = response.getBoolean("success");   
         } catch (MalformedURLException ex) {

@@ -18,9 +18,6 @@ public class RegisterUser extends LoginUser{
     @Size(max = 50, message = "Email address must be 3-30 characters")
     private String emailAddress;
     
-    @NotNull(message="Missing captcha token")
-    private String captchaToken;
-    
     public RegisterUser(){}
     
     @Override
@@ -47,13 +44,5 @@ public class RegisterUser extends LoginUser{
 
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
-    }
-
-    public String getCaptchaToken() {
-        return captchaToken;
-    }
-
-    public void setCaptchaToken(String captchaToken) {
-        this.captchaToken = captchaToken;
     }
 }
