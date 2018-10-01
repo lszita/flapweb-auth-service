@@ -21,6 +21,10 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tech.flapweb.auth.dao.UserDAO;
+import tech.flapweb.auth.domain.RegisterUser;
+import tech.flapweb.auth.utils.DB;
+import tech.flapweb.auth.utils.DBException;
 
 @WebListener
 public class App implements ServletContextListener{
@@ -35,10 +39,20 @@ public class App implements ServletContextListener{
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         LOGGER.info("Auth service starting up");
-        
-        if (!getPropsFromWAR()){
-            LOGGER.info("no {} found in WAR, loading properties from PATH", PROPERTIES_RESOURCE);
+        if (!getDevProps()){
+            LOGGER.info("no {} found in project root, loading properties from PATH", PROPERTIES_RESOURCE);
             getPropsFromPath();
+        }
+        
+        if(("CREATE").equals(PROPERTIES.getProperty("app.createSchema"))){
+            try {
+                LOGGER.info("Using test database, setting up schema and data...");
+                DB.createSchema();
+                RegisterUser user = new RegisterUser("test.test@test.te","test","test",null,true);
+                new UserDAO().createUser(user);
+            } catch (UserDAO.AuthDBException | DBException ex) {
+                LOGGER.error("cannot create schema or test user", ex);
+            }
         }
     }
 
@@ -75,8 +89,8 @@ public class App implements ServletContextListener{
         return secret;
     }
         
-    private boolean getPropsFromWAR(){
-        try (InputStream input = App.class.getClassLoader().getResourceAsStream(PROPERTIES_RESOURCE)){
+    private boolean getDevProps(){
+        try (InputStream input = new FileInputStream(PROPERTIES_RESOURCE)){
             if(input == null) return false;
             PROPERTIES.load(input);
         } catch (IOException ex) {
@@ -102,8 +116,6 @@ public class App implements ServletContextListener{
     }
         
     @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-        LOGGER.info("SHUT DOWN");
-    }
+    public void contextDestroyed(ServletContextEvent sce) {}
     
 }

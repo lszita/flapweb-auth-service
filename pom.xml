@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- hi -->
+    
     <groupId>tech.flapweb</groupId>
     <artifactId>flapweb-auth-service</artifactId>
     <version>1</version>
@@ -33,13 +33,6 @@
             <version>7.0</version>
             <scope>provided</scope>
         </dependency>
-        
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>9.4.8.v20171121</version>
-            <scope>provided</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.hibernate.validator</groupId>
@@ -66,12 +59,6 @@
         </dependency>
         
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.2.1</version>
-        </dependency>
-        
-        <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
             <version>3.3.0</version>
@@ -94,13 +81,13 @@
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
-
+        
         <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>2.7.8</version>
-            <scope>compile</scope>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.197</version>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -123,6 +110,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.3</version>
                 <configuration>
+                    <packagingExcludes>WEB-INF/lib/h2*.jar</packagingExcludes>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
@@ -134,7 +122,7 @@
                     <scanIntervalSeconds>5</scanIntervalSeconds>
                     <webApp>
                         <contextPath>/auth</contextPath>
-                        <jettyEnvXml>${project.basedir}/jetty-pg-ds.xml</jettyEnvXml>
+                        <jettyEnvXml>${project.basedir}/datasource.xml</jettyEnvXml>
                         <webInfIncludeJarPattern>.*/spring-[^/]*\.jar$</webInfIncludeJarPattern>
                     </webApp>
                     <httpConnector>

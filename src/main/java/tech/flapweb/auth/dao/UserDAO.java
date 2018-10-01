@@ -6,21 +6,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tech.flapweb.auth.domain.LoginUser;
 import tech.flapweb.auth.domain.RegisterUser;
+import tech.flapweb.auth.utils.DB;
+import tech.flapweb.auth.utils.DBException;
 
-/**
- *
- * @author Lajos Szita
- */
 public class UserDAO {
     
     private final Logger logger = LoggerFactory.getLogger(UserDAO.class);
@@ -33,8 +27,7 @@ public class UserDAO {
         ResultSet rs = null;
         
         try{
-            con = getConnection();
-            
+            con = DB.getConnection();
             String query = "SELECT username, email_address, password FROM users WHERE username = ?";
             if(activeOnly){
                 query += " AND active = TRUE";
@@ -55,7 +48,7 @@ public class UserDAO {
             }
             return exists;
         
-        } catch(NamingException | SQLException ex) {
+        } catch(DBException | SQLException ex) {
             logger.error("Exception",ex);
             throw new AuthDBException("DB error while retrieving user");
         } finally {
@@ -73,16 +66,17 @@ public class UserDAO {
         
         try{
            
-            con = getConnection();
-            String query = "INSERT INTO users(username, password, email_address) VALUES(?,?,?)";
+            con = DB.getConnection();
+            String query = "INSERT INTO users(username, password, email_address, active) VALUES(?,?,?,?)";
             stmt = con.prepareStatement(query);
             stmt.setString(1, user.getUsername());
             stmt.setString(2, BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
             stmt.setString(3, user.getEmailAddress());
+            stmt.setString(4, user.isActive() ? "true" : "false");
             
             stmt.execute();
             
-        } catch(NamingException | SQLException ex){
+        } catch(DBException | SQLException ex){
             logger.error("Exception occured",ex);
             throw new AuthDBException("DB error while creating user");
         } finally {
@@ -100,7 +94,7 @@ public class UserDAO {
         List<String> violations = new ArrayList<>(2);
         
         try{
-            con = getConnection();
+            con = DB.getConnection();
             String query = "select 'Username already exists!' as error_msg from users where username = ? " +
                            "union " +
                            "select 'Email already exists!' as error_msg from users where email_address = ?";
@@ -114,7 +108,7 @@ public class UserDAO {
             }
             return violations;
             
-        } catch(SQLException | NamingException ex){
+        } catch(SQLException | DBException ex){
             logger.error("Exception",ex);
             throw new AuthDBException("DB error while validating user");
         } finally {
@@ -122,15 +116,6 @@ public class UserDAO {
             try { if(stmt != null) stmt.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
             try { if(con != null) con.close(); } catch (SQLException ex) { logger.error("Exception",ex); }
         }
-    }
-    
-    
-    private Connection getConnection() throws NamingException, SQLException{    
-        Context initContext = new InitialContext();
-        Context webContext = (Context) initContext.lookup("java:/comp/env");
-
-        DataSource ds = (DataSource) webContext.lookup("jdbc/flapweb");
-        return ds.getConnection();
     }
     
     public class AuthDBException extends Exception {

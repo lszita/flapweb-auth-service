@@ -1,8 +1,8 @@
 target/
-jetty-pg-ds.xml
-src/main/resources/app.properties
 nb-configuration.xml
 nbactions.xml
 src/main/webapp/WEB-INF/weblogic.xml
 /nbproject/
+test-keys/private_key.der
+test-keys/public_key.der
 deploy.sh

@@ -22,14 +22,21 @@ public class LoginUser implements HttpDomain{
     private String password; 
     @NotNull(message="Missing captcha token")
     private String captchaToken;
-
     
+    private boolean active = false;
 
     private boolean cookieBased = false;
     
     public LoginUser() {
     }
-    
+
+    public LoginUser(String username, String password, String captchaToken, boolean active) {
+        this.username = username;
+        this.password = password;
+        this.captchaToken = captchaToken;
+        this.active = active;
+    }
+
     @Override
     public void setFromHttpRequest(HttpServletRequest request){
         this.setUsername(request.getParameter("username"));
@@ -80,5 +87,13 @@ public class LoginUser implements HttpDomain{
 
     public void setCaptchaToken(String captchaToken) {
         this.captchaToken = captchaToken;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

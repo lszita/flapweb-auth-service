@@ -19,6 +19,11 @@ public class RegisterUser extends LoginUser{
     private String emailAddress;
     
     public RegisterUser(){}
+
+    public RegisterUser(String emailAddress, String username, String password, String captchaToken, boolean active) {
+        super(username, password, captchaToken, active);
+        this.emailAddress = emailAddress;
+    }
     
     @Override
     public void setFromHttpRequest(HttpServletRequest request){
@@ -26,6 +31,7 @@ public class RegisterUser extends LoginUser{
         this.setPassword(request.getParameter("password"));
         this.setEmailAddress(request.getParameter("email_address"));
         this.setCaptchaToken(request.getParameter("captcha_token"));
+        
     }
     
     @Override
