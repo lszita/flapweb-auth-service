@@ -1,12 +1,10 @@
 package tech.flapweb.auth.webservice;
 
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Date;
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
 import javax.servlet.ServletException;
@@ -18,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.flapweb.auth.App;
 import tech.flapweb.auth.AppSettingsException;
-import tech.flapweb.auth.domain.LoginUser;
 import tech.flapweb.auth.domain.RenewalRequest;
 import tech.flapweb.auth.utils.JWTGenerator;
 
@@ -37,6 +34,9 @@ public class Renew extends HttpServlet {
         JsonObjectBuilder responseObjectBuilder = Json.createObjectBuilder();
         try {
             DecodedJWT jwt = JWT.decode(ren.getAccessToken());
+            LOGGER.debug("user trying to renew: {}", jwt.getSubject());
+            LOGGER.debug("refresh token in request: {}", ren.getRefreshToken());
+            LOGGER.debug("stuff in the store: {}", App.getActiveUserStore().get(jwt.getSubject()));
             if( ren.getRefreshToken().equals( App.getActiveUserStore().get(jwt.getSubject()))) {
                 
                 response.setContentType("application/json;charset=UTF-8");

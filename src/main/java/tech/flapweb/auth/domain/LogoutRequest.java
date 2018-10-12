@@ -9,28 +9,25 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
-public class RenewalRequest implements HttpDomain{
+
+public class LogoutRequest implements HttpDomain{
     
-    @NotNull(message = "provide valid access_token")
-    private String accessToken;
-    @NotNull(message = "provide valid refresh_token")
+    @NotNull(message = "Username cannot be null")
+    @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Username must contain only alphanumeric symbols")
+    @Size(min = 3, max = 30, message = "Username must be 3-30 characters")
+    private String username;
+    @NotNull(message = "refresh_token cannot be null")
     private String refreshToken;
 
-    public RenewalRequest() {
+    public String getUsername() {
+        return username;
     }
 
-    public RenewalRequest(String accessToken, String refreshToken) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-    }
-    
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getRefreshToken() {
@@ -43,7 +40,7 @@ public class RenewalRequest implements HttpDomain{
 
     @Override
     public void setFromHttpRequest(HttpServletRequest request) {
-        this.setAccessToken(request.getParameter("access_token"));
+        this.setUsername(request.getParameter("username"));
         if(("COOKIE").equalsIgnoreCase(request.getParameter("refresh_token"))){
             this.setRefreshToken(getRefreshTokenCookie(request));
         } else {
@@ -55,7 +52,7 @@ public class RenewalRequest implements HttpDomain{
     public Set validate() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
-        Set<ConstraintViolation<RenewalRequest>> violations = validator.validate(this);
+        Set<ConstraintViolation<LogoutRequest>> violations = validator.validate(this);
         Set<String> errorMessages = new HashSet<>();
         violations.forEach((e) -> errorMessages.add(e.getMessage()));
         return errorMessages;

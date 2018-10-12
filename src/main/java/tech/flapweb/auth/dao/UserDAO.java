@@ -72,7 +72,7 @@ public class UserDAO {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
             stmt.setString(3, user.getEmailAddress());
-            stmt.setString(4, user.isActive() ? "true" : "false");
+            stmt.setBoolean(4, user.isActive());
             
             stmt.execute();
             

@@ -50,8 +50,10 @@ public class Login extends HttpServlet {
                     .add("access_token", accessToken(user));
                 if(user.isCookieBased()){
                     Cookie cookie = new Cookie("refresh_token",refreshToken(user));
+                    logger.info("cookie added {}", cookie.getValue());
                     cookie.setHttpOnly(true);
-                    //cookie.setMaxAge(-1);
+                    cookie.setMaxAge(60 * 60 * 24 * 30 * 6);
+                    //cookie.setDomain(".app.localhost");
                     cookie.setPath("/");
                     cookie.setSecure(true);
                     response.addCookie(cookie);

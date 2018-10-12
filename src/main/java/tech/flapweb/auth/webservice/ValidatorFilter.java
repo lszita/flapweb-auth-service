@@ -17,10 +17,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import tech.flapweb.auth.domain.HttpDomain;
 import tech.flapweb.auth.domain.LoginUser;
+import tech.flapweb.auth.domain.LogoutRequest;
 import tech.flapweb.auth.domain.RegisterUser;
 import tech.flapweb.auth.domain.RenewalRequest;
 
-@WebFilter(servletNames={"Register","Login","Renew"})
+@WebFilter(servletNames={"Register","Login","Renew","Logout"})
 public class ValidatorFilter implements Filter{
 
     @Override
@@ -44,10 +45,13 @@ public class ValidatorFilter implements Filter{
         String uri = request.getRequestURI().toLowerCase();
         HttpDomain httpDomainClass;
         
+        //should come up with some factory method
         if(uri != null && uri.contains("register")){
             httpDomainClass = new RegisterUser();
         } else if(uri != null && uri.contains("login")){
             httpDomainClass = new LoginUser();
+        } else if(uri != null && uri.contains("logout")){
+            httpDomainClass = new LogoutRequest();
         } else if(uri != null && uri.contains("renew")){
             httpDomainClass = new RenewalRequest();
         } else return;

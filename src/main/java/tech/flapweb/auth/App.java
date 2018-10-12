@@ -94,7 +94,7 @@ public class App implements ServletContextListener{
             if(input == null) return false;
             PROPERTIES.load(input);
         } catch (IOException ex) {
-            LOGGER.error("Cannot read properties file",ex);
+            LOGGER.info("Cannot read properties file from project directory");
             return false;
         } 
         return true;
@@ -105,7 +105,7 @@ public class App implements ServletContextListener{
         try (InputStream input = new FileInputStream(new File(path))){
             PROPERTIES.load(input);
         } catch (IOException ex) {
-            LOGGER.error("Cannot read properties file",ex);
+            LOGGER.info("Cannot read properties file",ex);
             return false;
         }
         return true;
