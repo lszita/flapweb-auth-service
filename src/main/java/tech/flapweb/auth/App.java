@@ -101,7 +101,7 @@ public class App implements ServletContextListener{
     }
     
     private boolean getPropsFromPath(){
-        String path = System.getProperty("jetty_base") + "/resources/" + PROPERTIES_RESOURCE;
+        String path = System.getProperty("jetty.base") + "/resources/" + PROPERTIES_RESOURCE;
         try (InputStream input = new FileInputStream(new File(path))){
             PROPERTIES.load(input);
         } catch (IOException ex) {
